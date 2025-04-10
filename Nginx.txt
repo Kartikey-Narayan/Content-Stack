@@ -1,0 +1,127 @@
+# EC2 Instance
+
+# 📦 Install nginx
+sudo apt update
+sudo apt install nginx -y
+
+# 📁 Create a directory for SSL certificates
+sudo mkdir -p /etc/nginx/ssl
+
+# 📜 Paste your Cloudflare certificate and key into respective files
+sudo vim /etc/nginx/ssl/cloudflare.pem      # Paste your Cloudflare origin certificate
+sudo vim /etc/nginx/ssl/cloudflare.key      # Paste your Cloudflare private key
+
+# 🔐 Set secure permissions on the certificate files
+sudo chmod 600 /etc/nginx/ssl/*
+
+# 📝 Create a new NGINX configuration file for your reverse proxy setup
+sudo vim /etc/nginx/sites-available/reverse-proxy
+
+# 🔥 Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name backend-cs.kartikeynarayan.in;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name backend-cs.kartikeynarayan.in;
+
+    # 📜 SSL certificate and key (Cloudflare origin certificates)
+    ssl_certificate /etc/nginx/ssl/cloudflare.pem;
+    ssl_certificate_key /etc/nginx/ssl/cloudflare.key;
+
+    # 🔐 Enforce HSTS for security
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # ⚡ Enable GZIP compression
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_vary on;
+
+    # ✅ Backend Reverse Proxy for /api/
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Unified CORS Headers
+        add_header 'Access-Control-Allow-Origin' "$cors_origin" always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type, X-Requested-With';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+
+        if ($request_method = 'OPTIONS') {
+            return 204;
+        }
+    }
+
+    # ✅ Backend root path
+    location = / {
+        default_type 'text/plain';
+        return 200 '✅ Backend is running. Use /api/ for endpoints.';
+    }
+
+    # ✅ Increase max body size for large requests
+    client_max_body_size 100M;
+
+    # ⚠️ Custom error page for backend failures
+    error_page 502 503 504 /50x.html;
+
+    location = /50x.html {
+        root /usr/share/nginx/html;
+        internal;
+    }
+}               
+
+# 🧠 Add this map block inside your main nginx.conf file under the http {} section:
+# 📍 /etc/nginx/nginx.conf (inside http {})
+http {
+    # ... existing settings ...
+
+    # 🧠 Strict CORS control – only allow these two domains
+    map $http_origin $cors_origin {
+        default "";
+        "https://cms-cs.kartikeynarayan.in" $http_origin;
+        "https://content-stack.kartikeynarayan.in" $http_origin;
+    }
+
+    # ... existing settings ...
+}
+
+# 🔗 Enable the site configuration by creating a symbolic link
+sudo ln -s /etc/nginx/sites-available/reverse-proxy /etc/nginx/sites-enabled/
+
+# 🔍 Test the NGINX configuration for syntax errors
+sudo nginx -t 
+
+# 🔄 Restart NGINX to apply the changes
+sudo systemctl restart nginx
+
+# 📝 Create a custom error page for the Nginx configuration
+sudo vim /usr/share/nginx/html/50x.html
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Service Unavailable</title>
+        <style>
+            body { font-family: sans-serif; text-align: center; padding: 5%; background: #f7f7f7; }
+            h1 { font-size: 48px; color: #d9534f; }
+            p { font-size: 20px; color: #555; }
+        </style>
+        </head>
+    <body>
+        <h1>😵 503 / 502 Error</h1>
+        <p>Our servers are a bit overloaded. Please try again later.</p>
+    </body>
+</html>
+
+# 🔄 Again Restart NGINX to apply the changes
+sudo systemctl restart nginx
