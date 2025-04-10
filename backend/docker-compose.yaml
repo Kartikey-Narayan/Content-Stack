@@ -1,0 +1,64 @@
+# Define services that will run in the containers
+services:
+
+  # 🗃️ PostgreSQL Service
+  postgres:
+    # 🐘 Use the official PostgreSQL image with a specific version
+    image: postgres:15.10-alpine3.20
+    # 🏷️ Set the container name for easy identification
+    container_name: postgres_db
+    # ⚙️ Environment variables for database configuration
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    # 💾 Persist the database data between container restarts
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    # 🔒 Attach this service to the custom network
+    networks:
+      - content-stack-network
+    # 🩺 Health check to ensure PostgreSQL is ready
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d $POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 💻 Backend (Node.js/Express) Service
+  backend:
+    # 🖼️ Use the custom backend app image
+    image: kartikeynarayan/content-stack-backend:latest
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    # 🏷️ Set the container name for easy identification
+    container_name: content-stack-backend
+    # ⚙️ Environment variables for the backend to connect to PostgreSQL
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
+    # 🌐 Expose the backend application port to the host machine
+    ports:
+      - "3000:3000"
+    # 🔒 Attach this service to the custom network
+    networks:
+      - content-stack-network
+    # 🕒 Ensure the app waits for PostgreSQL to be healthy before running
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # 🔄 Automatically restart the backend app if it crashes
+    restart: always
+
+# 🔐 Define volumes to persist PostgreSQL data between container restarts
+volumes:
+  postgres:
+
+# 🌐 Define a custom network for all services to communicate securely
+networks:
+  content-stack-network:
+    driver: bridge

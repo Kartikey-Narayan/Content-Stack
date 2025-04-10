@@ -1,0 +1,30 @@
+# 📁 Ignore node_modules as dependencies will be installed inside the container
+node_modules/
+
+# 🛠️ Ignore build artifacts
+dist/
+build/
+
+# 🧪 Ignore test files and coverage reports
+coverage
+*.test.js
+*.spec.js
+
+# 🗑️ Ignore OS and editor-specific files (MAC OS)
+.DS_Store
+
+# 📝 Ignore logs and environment files
+*.log
+
+.env
+.env.local
+
+# 🐳 Ignore Docker-related files that shouldn’t be copied
+Dockerfile
+.dockerignore
+
+# ⚙️ Ignore config and cache directories
+npm-debug.log
+.idea/
+.cache/
+.vscode/

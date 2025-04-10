@@ -1,0 +1,55 @@
+/* 
+    Styles for the Not Found section
+*/
+.error-container {
+    gap: 10px;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+}
+
+.error-text {
+    color: #111;
+    font-size: 24px;
+    font-weight: 500;
+    word-spacing: normal;
+    letter-spacing: normal;
+}
+
+.error-subtext {
+    color: #333;
+    font-size: 22px;
+    font-weight: 400;
+    text-align: center;
+    word-spacing: normal;
+    letter-spacing: normal;
+}
+
+/* 
+    Media queries for responsiveness 
+*/
+@media screen and (max-width: 768px) {
+    /* For tablet screens */
+    .error-text{
+        font-size: 22px;
+    }
+
+    .error-subtext {
+        font-size: 20px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    /* For mobile screens */
+    .error-text{
+        font-size: 20px;
+    }
+
+    .error-subtext {
+        font-size: 18px;
+    }
+}
