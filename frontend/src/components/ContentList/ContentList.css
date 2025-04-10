@@ -19,6 +19,15 @@
     margin-bottom: 20px;
 }
 
+.content-list-loading {
+    color: #333;
+    font-size: 18px;
+    font-weight: 400;
+    text-align: center;
+    word-spacing: normal;
+    letter-spacing: normal;
+}
+
 .content-list-error {
     color: red;
     font-size: 18px;
@@ -62,6 +71,10 @@
     
     .content-list-title {
         font-size: 18px;
+    }
+
+    .content-list-loading {
+        font-size: 16px;
     }
 
     .content-list-error {

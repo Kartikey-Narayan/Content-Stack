@@ -12,9 +12,10 @@ const API_URL = 'https://backend-cs.kartikeynarayan.in/api/content';
 // Define a functional component named ContentList
 const ContentList = () => {
 
-  // State to hold the fetched content data and any errors
+  // State to hold the fetched content data, any errors & loading state
   const [content, setContent] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Fetch data from the API when the component mounts
   useEffect(() => {
@@ -30,6 +31,8 @@ const ContentList = () => {
       } catch (error) {
         console.error('⚠️ Error fetching content: ', error);
         setError('❌ Something went wrong, Please try again later.');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -41,19 +44,18 @@ const ContentList = () => {
     <div className='content-list-container'>
       <h2 className='content-list-title'>📄 Content List</h2>
       {
-        error 
-        ? 
-        (
-          <p className='content-list-error'>{error}</p>
+        loading ? (
+          <p className='content-list-loading'>🔄 Loading...</p>
+        ) 
+        : error ? (
+        <p className='content-list-error'>{error}</p>
         ) 
         : 
         (
           <ul className='content-list'>
             {
-              content.length === 0 
-              ? 
-              (
-              <li className='content-list-error'>🔄 No content available, Please try again later.</li>
+              content.length === 0 ? (
+                <li className='content-list-error'>🔄 No content available, Please try again later.</li>
               ) 
               : 
               (
